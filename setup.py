@@ -10,7 +10,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="PRODAFT",
-    author_email="info@prodaft.com",
+    author_email="catalyst+pypi@prodaft.com",
     url="https://github.com/prodaft/python-catalyst",
     packages=find_packages(),
     install_requires=[
