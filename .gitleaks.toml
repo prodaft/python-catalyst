@@ -1,0 +1,44 @@
+# Title for the gitleaks configuration
+title = "PRODAFT CATALYST API Client Gitleaks Configuration"
+
+# Extends the base gitleaks configuration with all the default detectors
+[extend]
+extend = "https://raw.githubusercontent.com/gitleaks/gitleaks/master/config/gitleaks.toml"
+
+# Rules/detectors
+[[rules]]
+id = "catalyst-api-key"
+description = "PRODAFT CATALYST API Key"
+regex = '''(CATALYST_API_KEY|catalyst_api_key)["\']?\s*[=:]\s*["\']?([A-Za-z0-9_\-]{20,})'''
+keywords = [
+    "CATALYST_API_KEY",
+    "catalyst_api_key"
+]
+entropy = 4.5
+secret-group = 2
+
+# Paths to ignore in the scan
+[allowlist]
+paths = [
+    '''(^|/)\.git/''',
+    '''(^|/)\.(git|env|venv|virtualenv)/''',
+    '''test(_.*)?\.py$''',
+    '''(.*)?_test.py$''',
+    '''(.*/)?test/(.*/)?fixtures/.*''',
+    '''\.pre-commit-config\.yaml$''',
+    '''\.gitleaks\.toml$''',
+    '''\.secrets\.baseline$''',
+]
+
+[[paths]]
+path = "**/.gitleaks.toml"
+exclude = true
+
+
+# Regexes to ignore
+regexes = [
+    '''CATALYST_API_KEY=your_api_key''',
+    '''api_key="your_api_key"''',
+    '''api_key='your_api_key''',
+    '''client = CatalystClient\(api_key="your_api_key"\)''',
+]

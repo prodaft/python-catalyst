@@ -1,10 +1,10 @@
+"""Enums for the CATALYST API."""
+
 from enum import Enum
 
 
 class ObservableType(Enum):
-    """
-    Types of observables supported by the CATALYST API.
-    """
+    """Types of observables supported by the CATALYST API."""
 
     BTC_ADDRESS = "BTC_ADDRESS"
     URL = "URL"
@@ -21,9 +21,7 @@ class ObservableType(Enum):
 
 
 class PostCategory(Enum):
-    """
-    Categories of member content posts.
-    """
+    """Categories of member content posts."""
 
     DISCOVERY = "DISCOVERY"
     ATTRIBUTION = "ATTRIBUTION"
@@ -32,9 +30,7 @@ class PostCategory(Enum):
 
 
 class TLPLevel(Enum):
-    """
-    TLP classification levels for member content.
-    """
+    """TLP classification levels for member content."""
 
     CLEAR = "TLP:CLEAR"
     GREEN = "TLP:GREEN"

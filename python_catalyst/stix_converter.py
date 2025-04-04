@@ -1,9 +1,6 @@
-"""
-STIX converter for CATALYST data.
-"""
+"""STIX converter for CATALYST data."""
 
 import ipaddress
-import json
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -30,9 +27,7 @@ from .enums import ObservableType, TLPLevel
 
 
 class StixConverter:
-    """
-    Converts CATALYST data to STIX 2.1 format.
-    """
+    """Converts CATALYST data to STIX 2.1 format."""
 
     def __init__(
         self,
@@ -145,8 +140,7 @@ class StixConverter:
         self, source_name: str, external_id: str, is_report: bool = False
     ) -> stix2.ExternalReference:
         """
-        Create an external reference to the CATALYST platform.
-        Uses caching to avoid duplicate external references for the same source and ID.
+        Create an external reference to the CATALYST platform. Uses caching to avoid duplicate external references for the same source and ID.
 
         Args:
             source_name: Name of the source
@@ -155,16 +149,16 @@ class StixConverter:
         Returns:
             STIX ExternalReference object
         """
-        cache_key = f"{source_name}:{external_id}"
+        cache_key = f"{source_name}:{external_id}"  # noqa: E231
 
         if cache_key in self._external_ref_cache:
             return self._external_ref_cache[cache_key]
 
-        if source_name == "PRODAFT CATALYST" and not "--" in external_id and is_report:
+        if source_name == "PRODAFT CATALYST" and "--" not in external_id and is_report:
             ext_ref = stix2.ExternalReference(
                 source_name=source_name,
                 external_id=external_id,
-                url=f"https://catalyst.prodaft.com/report/{external_id}/",
+                url=f"https://catalyst.prodaft.com/report/{external_id}/",  # noqa: E231
             )
         else:
             ext_ref = stix2.ExternalReference(
@@ -213,7 +207,9 @@ class StixConverter:
         Returns:
             STIX Relationship object
         """
-        cache_key = f"relationship:{relationship_type}:{source_ref}:{target_ref}"
+        cache_key = (
+            f"relationship:{relationship_type}:{source_ref}:{target_ref}"  # noqa: E231
+        )
         if cache_key in self._entity_cache:
             rel_id = self._entity_cache[cache_key]
             return stix2.Relationship(
@@ -535,7 +531,6 @@ class StixConverter:
         Returns:
             STIX Identity object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -576,7 +571,6 @@ class StixConverter:
         Returns:
             STIX Identity object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -618,7 +612,6 @@ class StixConverter:
         Returns:
             STIX Identity object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -660,7 +653,6 @@ class StixConverter:
         Returns:
             STIX Location object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -745,7 +737,6 @@ class StixConverter:
         Returns:
             STIX Malware object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -787,7 +778,6 @@ class StixConverter:
         Returns:
             STIX Tool object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -828,7 +818,6 @@ class StixConverter:
         Returns:
             STIX Vulnerability object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -869,7 +858,6 @@ class StixConverter:
         Returns:
             STIX Attack Pattern object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -910,7 +898,6 @@ class StixConverter:
         Returns:
             STIX Campaign object
         """
-
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -993,7 +980,7 @@ class StixConverter:
             observable_type = observable_data.get("type", "unknown")
             value = observable_data.get("value", "unknown")
             print(
-                f"Error creating STIX observable/indicator for {observable_type}:{value}: {str(e)}"
+                f"Error creating STIX observable/indicator for {observable_type}:{value}: {str(e)}"  # noqa: E231
             )
             return None, [], None
 
@@ -1018,12 +1005,12 @@ class StixConverter:
         if isinstance(observable_data, dict):
             observable_type = observable_data.get("type")
             value = observable_data.get("value")
-            entity_id = observable_data.get("id")
+            # entity_id = observable_data.get("id")
         else:
             try:
                 if hasattr(observable_data, "type") and hasattr(observable_data, "id"):
                     observable_type = observable_data.type
-                    entity_id = observable_data.id
+                    # entity_id = observable_data.id
 
                     if observable_type in [
                         "ipv4-addr",
@@ -1040,14 +1027,16 @@ class StixConverter:
                         ):
                             for hash_type, hash_value in observable_data.hashes.items():
                                 value = hash_value
-                                observable_type = f"file:hashes:'{hash_type}'"
+                                observable_type = (
+                                    f"file:hashes:'{hash_type}'"  # noqa: E231
+                                )
                                 break
                         else:
                             value = None
                     elif observable_type == "user-account":
                         value = observable_data.user_id
                         observable_type = (
-                            f"user-account:{observable_data.account_type}"
+                            f"user-account:{observable_data.account_type}"  # noqa: E231
                             if hasattr(observable_data, "account_type")
                             else "user-account"
                         )
@@ -1090,11 +1079,11 @@ class StixConverter:
             account_type = observable_type.lower()
             if ":" in account_type:
                 account_type = account_type.split(":")[1]
-            pattern = f"[user-account:account_type = '{account_type}' AND user-account:user_id = '{value}']"
+            pattern = f"[user-account:account_type = '{account_type}' AND user-account:user_id = '{value}']"  # noqa: E231
         elif observable_type == ObservableType.BTC_ADDRESS.value:
             pattern = f"[cryptocurrency-wallet:value = '{value}']"
         else:
-            pattern = f"[x-{observable_type.lower()}:value = '{value}']"
+            pattern = f"[x-{observable_type.lower()}:value = '{value}']"  # noqa: E231
 
         external_references = []
         if report_reference:
@@ -1197,8 +1186,7 @@ class StixConverter:
 
     def get_created_by_ref(self) -> str:
         """
-        Return the identity ID to use as created_by_ref throughout all STIX objects.
-        This ensures all objects reference the same identity.
+        Return the identity ID to use as created_by_ref throughout all STIX objects. This ensures all objects reference the same identity.
 
         Returns:
             STIX Identity ID
@@ -1318,7 +1306,7 @@ class StixConverter:
         else:
             # Create a Threat Actor with the appropriate type
             actor_type = "threat-actor-group" if is_group else "threat-actor-individual"
-
+            custom_properties["x_opencti_type"] = actor_type
             return stix2.ThreatActor(
                 id=ThreatActor.generate_id(entity_value, actor_type),
                 name=entity_value,

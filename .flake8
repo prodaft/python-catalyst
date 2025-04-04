@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 110
+exclude = .git,__pycache__,build,dist,setup.py
+ignore = E203, W503, E501
+# E203: whitespace before ':' (black handles this)
+# W503: line break before binary operator (black handles this)
+# E501: line too long
+per-file-ignores =
+    # F401: imported but unused
+    # F403: unable to detect undefined names
+    __init__.py: F401, F403
+    # D100-D104: missing docstrings
+    tests/*: D100, D101, D102, D103, D104
