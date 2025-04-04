@@ -1,21 +1,19 @@
-import json
+"""Client for the CATALYST API."""
+
 import logging
 import uuid
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
 
 import requests
 import stix2
 from requests.exceptions import RequestException
 
-from .enums import ObservableType, PostCategory, TLPLevel
+from .enums import PostCategory, TLPLevel
 
 
 class CatalystClient:
-    """
-    Client for the CATALYST API.
-    """
+    """Client for the CATALYST API."""
 
     def __init__(
         self,
@@ -304,7 +302,7 @@ class CatalystClient:
                     entity_value = reference.get("value")
 
                     if entity_type and entity_id and entity_value:
-                        entity_key = f"{entity_type}:{entity_value}"
+                        entity_key = f"{entity_type}:{entity_value}"  # noqa: E231
 
                         if entity_key in processed_entities:
                             continue
@@ -333,10 +331,12 @@ class CatalystClient:
 
         if self.logger:
             self.logger.info(
-                f"Extracted {entity_count} unique entities from post: {content_id}"
+                f"Extracted {entity_count} unique entities from post: {content_id}"  # noqa: E221
             )
             for entity_type, entities_list in entities.items():
-                self.logger.debug(f"  - {len(entities_list)} {entity_type} entities")
+                self.logger.debug(
+                    f"  - {len(entities_list)} {entity_type} entities"  # noqa: E221
+                )
 
         return entities
 
@@ -880,7 +880,6 @@ class CatalystClient:
                 - The STIX Report object dictionary
                 - List of related STIX objects (indicators, observables, etc.)
         """
-
         if self.logger:
             self.logger.debug(
                 "Using reference-based entity extraction for better report creation"
@@ -922,7 +921,6 @@ class CatalystClient:
         Returns:
             STIX relationship object
         """
-
         return self.converter.create_relationship(
             source_ref=source_id,
             target_ref=target_id,
@@ -1021,8 +1019,7 @@ class CatalystClient:
         external_reference: stix2.ExternalReference = None,
     ) -> None:
         """
-        Process TTPs (Tactics, Techniques, and Procedures) from CATALYST data.
-        This function is currently not used.
+        Process TTPs (Tactics, Techniques, and Procedures) from CATALYST data. This function is currently not used.
 
         It is preserved here for documentation purposes, to make it easy to re-enable
         if needed in the future.

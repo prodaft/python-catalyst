@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+.pre-commit-hooks.yaml.bak
+.gitleaks-report.json

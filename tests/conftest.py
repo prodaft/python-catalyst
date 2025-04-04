@@ -2,9 +2,10 @@
 Pytest configuration file for the PRODAFT CATALYST API client package.
 """
 
-import pytest
-import os
 import logging
+import os
+
+import pytest
 
 
 def pytest_addoption(parser):
