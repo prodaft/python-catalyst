@@ -649,6 +649,12 @@ class CatalystClient:
             for threat_actor in all_entities.get("threatactor", []) + all_entities.get(
                 "threat_actor", []
             ):
+                if not self.catalyst_authenticated:
+                    if self.logger:
+                        self.logger.debug(
+                            f"Skipping threat actor {threat_actor.get('value')} because user is not authenticated... This will be implemented in the future."
+                        )
+                    continue
                 self._process_threat_actor(
                     threat_actor,
                     related_objects,
