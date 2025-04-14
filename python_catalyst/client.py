@@ -1,6 +1,7 @@
 """Client for the CATALYST API."""
 
 import logging
+import time
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -17,7 +18,7 @@ class CatalystClient:
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str = None,
         base_url: str = "https://prod.blindspot.prodaft.com/api",
         proxy_url: Optional[str] = None,
         logger: Optional[logging.Logger] = None,
@@ -62,6 +63,7 @@ class CatalystClient:
         # extra config params
         self.create_observables = create_observables
         self.create_indicators = create_indicators
+        self._last_request_time = 0
 
     def _handle_request(
         self, method: str, endpoint: str, params: Dict = None, data: Dict = None
@@ -82,6 +84,18 @@ class CatalystClient:
             RequestException: If the request fails
         """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
+
+        if not self.catalyst_authenticated:
+            current_time = time.time()
+            time_since_last_request = current_time - self._last_request_time
+            if time_since_last_request < 20:
+                sleep_time = 20 - time_since_last_request
+                if self.logger:
+                    self.logger.debug(
+                        f"Sleeping for {sleep_time:.2f} seconds between requests"  # noqa: E231
+                    )
+                time.sleep(sleep_time)
+            self._last_request_time = time.time()
 
         try:
             self.logger.debug(f"Making {method} request to {url}")
