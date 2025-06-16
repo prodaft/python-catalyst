@@ -148,14 +148,13 @@ class CatalystClient:
 
         if tlp:
             if len(tlp) > 0:
-                first_tlp = tlp[0]
-                params["tlp"] = (
-                    first_tlp.value if isinstance(first_tlp, TLPLevel) else first_tlp
-                )
-                if len(tlp) > 1:
-                    self.logger.debug(
-                        f"Multiple TLP values provided but API only supports one. Using: {params['tlp']}"
-                    )
+                tlps = []
+                for t in tlp:
+                    if isinstance(t, TLPLevel):
+                        tlps.append(t.value)
+                    else:
+                        tlps.append(t)
+                params["tlp"] = tlps
 
         if published_on_after:
             params["published_on_after"] = published_on_after.isoformat()
