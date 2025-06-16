@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="python-catalyst",
-    version="0.1.3",
+    version="0.1.4",
     description="Python client for the PRODAFT CATALYST API",
     long_description=long_description,
     long_description_content_type="text/markdown",
