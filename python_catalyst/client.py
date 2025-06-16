@@ -57,6 +57,7 @@ class CatalystClient:
                 ),
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "User-Agent": "python-catalyst-client/0.1.3",
             }
         )
 
@@ -269,6 +270,8 @@ class CatalystClient:
                 f"Fetching member contents updated since: {since.isoformat()}"
             )
 
+        if not self.catalyst_authenticated:
+            tlp = [TLPLevel.CLEAR]  # Default to TLP:CLEAR for unauthenticated users
         contents = self.get_all_member_contents(
             category=category,
             tlp=tlp,
