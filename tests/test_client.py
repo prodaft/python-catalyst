@@ -84,7 +84,7 @@ class TestCatalystClient(unittest.TestCase):
             self.client.content_endpoint,
             params={
                 "category": "RESEARCH",
-                "tlp": "TLP:AMBER",
+                "tlp": ["TLP:AMBER"],
                 "published_on_after": test_datetime.isoformat(),
                 "published_on_before": test_datetime.isoformat(),
                 "updated_on_after": test_datetime.isoformat(),
