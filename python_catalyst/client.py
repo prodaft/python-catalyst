@@ -526,7 +526,7 @@ class CatalystClient:
         published_on = content.get("published_on", content.get("published_date"))
         modified = content.get("updated_date", content.get("updated_on"))
         content_id = content.get("id")
-        slug = content.get("slug", "")
+        slug = content.get("slug", "")  # noqa: F841
         tlp = content.get("tlp", TLPLevel.CLEAR.value)
         self.converter = self.get_stix_converter(tlp)
 
@@ -695,17 +695,18 @@ class CatalystClient:
                 )
 
             # Get detailed content and create report
-            detailed_content = (
-                self.get_member_content(content_id)
-                if self.catalyst_authenticated
-                else self.get_member_content(slug)
-            )
-            content = detailed_content.get("content", "")
-
+            # For now, the summary will be used instead of detailed content.
+            # detailed_content = (
+            #    self.get_member_content(content_id)
+            #    if self.catalyst_authenticated
+            #    else self.get_member_content(slug)
+            # )
+            # content = detailed_content.get("content", "")
+            content = summary or description
             report = self.converter.create_report(
                 content_id=content_id,
                 title=title,
-                description=content or summary or description,
+                description=content,
                 published=published,
                 modified=modified,
                 object_refs=collected_object_refs,
