@@ -703,6 +703,9 @@ class CatalystClient:
             # )
             # content = detailed_content.get("content", "")
             content = summary or description
+            post_url = f"https://catalyst.prodaft.com/report/{content_id}"  # noqa: E231
+            content += f"\n Access the full content at: {post_url}"
+
             report = self.converter.create_report(
                 content_id=content_id,
                 title=title,
