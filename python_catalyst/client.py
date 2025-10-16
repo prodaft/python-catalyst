@@ -540,6 +540,7 @@ class CatalystClient:
         content_id = content.get("id")
         slug = content.get("slug", "")  # noqa: F841
         tlp = content.get("tlp", TLPLevel.CLEAR.value)
+        topics = content.get("topics", [])
         self.converter = self.get_stix_converter(tlp)
 
         if published_on:
@@ -559,6 +560,9 @@ class CatalystClient:
             labels.append(content["category"])
         if content.get("sub_category") and content["sub_category"].get("name"):
             labels.append(content["sub_category"]["name"])
+        if len(topics) > 0:
+            for topic in topics:
+                labels.append(topic["name"])
 
         report_id = (
             f"report--{str(uuid.uuid5(uuid.NAMESPACE_URL, f'catalyst-{content_id}'))}"
@@ -618,7 +622,7 @@ class CatalystClient:
                 entity_id = observable.get("id")
                 entity_value = observable.get("value")
                 entity_type = observable.get("type")
-
+                entity_context = observable.get("context", "")
                 if entity_id and entity_value and entity_type:
                     observable_data = {
                         "id": entity_id,
@@ -626,6 +630,7 @@ class CatalystClient:
                         "type": entity_type,
                         "post_id": content_id,
                         "tlp_marking": content_marking,
+                        "context": entity_context,
                     }
 
                     (

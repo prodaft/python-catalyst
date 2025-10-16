@@ -696,7 +696,6 @@ class StixConverter:
         Returns:
             STIX Threat Actor object
         """
-        print(context)
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -1097,11 +1096,15 @@ class StixConverter:
         marking_ref = tlp_marking.id if tlp_marking else self.tlp_marking.id
 
         created_by_ref = self.get_created_by_ref()
+        description = f"Indicator for {observable_type}: {value}"
+        if "context" in observable_data:
+            ctx = observable_data["context"]
+            description = f"{description}\n\n{ctx}"
 
         return stix2.Indicator(
             id=indicator_id,
             name=indicator_name,
-            description=f"Indicator for {observable_type}: {value}",
+            description=description,
             pattern=pattern,
             pattern_type="stix",
             created_by_ref=created_by_ref,
