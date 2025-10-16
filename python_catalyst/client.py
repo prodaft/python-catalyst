@@ -365,7 +365,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a single entity and add it to the report.
 
@@ -398,6 +398,8 @@ class CatalystClient:
             if self.logger:
                 self.logger.debug(f"Added {entity_type}: {entity_value}")
 
+        return related_objects, collected_object_refs, entity_mappings
+
     def _process_entities(
         self,
         entities: List[Dict],
@@ -407,7 +409,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a list of entities of the same type.
 
@@ -421,7 +423,11 @@ class CatalystClient:
             external_reference: Optional reference to the report
         """
         for entity in entities:
-            self._process_entity(
+            (
+                related_objects,
+                collected_object_refs,
+                entity_mappings,
+            ) = self._process_entity(
                 entity,
                 entity_type,
                 converter_method,
@@ -431,6 +437,8 @@ class CatalystClient:
                 external_reference,
             )
 
+        return related_objects, collected_object_refs, entity_mappings
+
     def _process_threat_actor(
         self,
         threat_actor: Dict,
@@ -438,7 +446,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a threat actor entity with detailed information.
 
@@ -461,14 +469,14 @@ class CatalystClient:
                         f"Retrieved detailed information for threat actor: {entity_value}"
                     )
 
-                ta_object = self.converter.create_detailed_threat_actor(
+                ta_object, bundle = self.converter.create_detailed_threat_actor(
                     detailed_threat_actor,
                     context,
                     report_reference=external_reference,
                 )
 
                 is_abstract = detailed_threat_actor.get("is_abstract", False)
-                related_objects.append(ta_object)
+                related_objects.extend(bundle)
                 collected_object_refs.append(ta_object.id)
 
                 if is_abstract:
@@ -481,6 +489,8 @@ class CatalystClient:
                     entity_mappings["threat-actor"].append(ta_object.id)
                     if self.logger:
                         self.logger.debug(f"Added threat actor: {entity_value}")
+
+                return related_objects, collected_object_refs, entity_mappings
 
             except Exception as e:
                 if self.logger:
@@ -500,6 +510,8 @@ class CatalystClient:
 
                 if self.logger:
                     self.logger.debug(f"Added threat actor: {entity_value}")
+
+                return related_objects, collected_object_refs, entity_mappings
 
     def create_report_from_member_content_with_references(
         self, content: Dict
@@ -528,6 +540,7 @@ class CatalystClient:
         content_id = content.get("id")
         slug = content.get("slug", "")  # noqa: F841
         tlp = content.get("tlp", TLPLevel.CLEAR.value)
+        topics = content.get("topics", [])
         self.converter = self.get_stix_converter(tlp)
 
         if published_on:
@@ -547,6 +560,9 @@ class CatalystClient:
             labels.append(content["category"])
         if content.get("sub_category") and content["sub_category"].get("name"):
             labels.append(content["sub_category"]["name"])
+        if len(topics) > 0:
+            for topic in topics:
+                labels.append(topic["name"])
 
         report_id = (
             f"report--{str(uuid.uuid5(uuid.NAMESPACE_URL, f'catalyst-{content_id}'))}"
@@ -606,7 +622,7 @@ class CatalystClient:
                 entity_id = observable.get("id")
                 entity_value = observable.get("value")
                 entity_type = observable.get("type")
-
+                entity_context = observable.get("context", "")
                 if entity_id and entity_value and entity_type:
                     observable_data = {
                         "id": entity_id,
@@ -614,6 +630,7 @@ class CatalystClient:
                         "type": entity_type,
                         "post_id": content_id,
                         "tlp_marking": content_marking,
+                        "context": entity_context,
                     }
 
                     (
@@ -657,7 +674,11 @@ class CatalystClient:
                             f"Skipping threat actor {threat_actor.get('value')} because user is not authenticated... This will be implemented in the future."
                         )
                     continue
-                self._process_threat_actor(
+                (
+                    related_objects,
+                    collected_object_refs,
+                    entity_mappings,
+                ) = self._process_threat_actor(
                     threat_actor,
                     related_objects,
                     collected_object_refs,
@@ -684,7 +705,11 @@ class CatalystClient:
                     converter_method = processor
                     mapping_type = entity_type
 
-                self._process_entities(
+                (
+                    related_objects,
+                    collected_object_refs,
+                    entity_mappings,
+                ) = self._process_entities(
                     all_entities.get(entity_type, []),
                     mapping_type,
                     converter_method,

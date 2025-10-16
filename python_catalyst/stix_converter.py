@@ -1096,11 +1096,15 @@ class StixConverter:
         marking_ref = tlp_marking.id if tlp_marking else self.tlp_marking.id
 
         created_by_ref = self.get_created_by_ref()
+        description = f"Indicator for {observable_type}: {value}"
+        if "context" in observable_data:
+            ctx = observable_data["context"]
+            description = f"{description}\n\n{ctx}"
 
         return stix2.Indicator(
             id=indicator_id,
             name=indicator_name,
-            description=f"Indicator for {observable_type}: {value}",
+            description=description,
             pattern=pattern,
             pattern_type="stix",
             created_by_ref=created_by_ref,
@@ -1210,6 +1214,7 @@ class StixConverter:
         Returns:
             STIX ThreatActor or IntrusionSet object with full details included
         """
+        bundle = []
         external_references = []
         if report_reference:
             external_references = [report_reference]
@@ -1291,7 +1296,7 @@ class StixConverter:
 
         if is_abstract:
             # Create an Intrusion Set for abstract entities
-            return stix2.IntrusionSet(
+            actor = stix2.IntrusionSet(
                 id=IntrusionSet.generate_id(entity_value),
                 name=entity_value,
                 description=description,
@@ -1302,12 +1307,13 @@ class StixConverter:
                     external_references if external_references else None
                 ),
                 custom_properties=custom_properties,
+                allow_custom=True,
             )
         else:
             # Create a Threat Actor with the appropriate type
             actor_type = "threat-actor-group" if is_group else "threat-actor-individual"
             custom_properties["x_opencti_type"] = actor_type
-            return stix2.ThreatActor(
+            actor = stix2.ThreatActor(
                 id=ThreatActor.generate_id(entity_value, actor_type),
                 name=entity_value,
                 description=description,
@@ -1318,4 +1324,40 @@ class StixConverter:
                     external_references if external_references else None
                 ),
                 custom_properties=custom_properties,
+                allow_custom=True,
             )
+        bundle.append(actor)
+
+        suspected_origins = threat_actor_data.get("suspected_origins", [])
+        if isinstance(suspected_origins, list):
+            for origin in suspected_origins:
+                cname = origin.get("name")
+                ccode = origin.get("code")
+                if not cname:
+                    continue
+
+                loc = stix2.Location(
+                    name=cname,
+                    country=cname,
+                    custom_properties=(
+                        {
+                            "x_country_code": (
+                                ccode.upper() if isinstance(ccode, str) else None
+                            )
+                        }
+                        if ccode
+                        else None
+                    ),
+                    allow_custom=True,
+                )
+                rel_type = "originates-from" if is_abstract else "located-at"
+                rel = stix2.Relationship(
+                    relationship_type=rel_type,
+                    source_ref=actor.id,
+                    target_ref=loc.id,
+                )
+
+                bundle.append(loc)
+                bundle.append(rel)
+
+        return actor, bundle
