@@ -365,7 +365,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a single entity and add it to the report.
 
@@ -398,6 +398,8 @@ class CatalystClient:
             if self.logger:
                 self.logger.debug(f"Added {entity_type}: {entity_value}")
 
+        return related_objects, collected_object_refs, entity_mappings
+
     def _process_entities(
         self,
         entities: List[Dict],
@@ -407,7 +409,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a list of entities of the same type.
 
@@ -421,7 +423,11 @@ class CatalystClient:
             external_reference: Optional reference to the report
         """
         for entity in entities:
-            self._process_entity(
+            (
+                related_objects,
+                collected_object_refs,
+                entity_mappings,
+            ) = self._process_entity(
                 entity,
                 entity_type,
                 converter_method,
@@ -431,6 +437,8 @@ class CatalystClient:
                 external_reference,
             )
 
+        return related_objects, collected_object_refs, entity_mappings
+
     def _process_threat_actor(
         self,
         threat_actor: Dict,
@@ -438,7 +446,7 @@ class CatalystClient:
         collected_object_refs: List,
         entity_mappings: Dict,
         external_reference: stix2.ExternalReference = None,
-    ) -> None:
+    ) -> Tuple[List[Dict], List, Dict]:
         """
         Process a threat actor entity with detailed information.
 
@@ -461,14 +469,14 @@ class CatalystClient:
                         f"Retrieved detailed information for threat actor: {entity_value}"
                     )
 
-                ta_object = self.converter.create_detailed_threat_actor(
+                ta_object, bundle = self.converter.create_detailed_threat_actor(
                     detailed_threat_actor,
                     context,
                     report_reference=external_reference,
                 )
 
                 is_abstract = detailed_threat_actor.get("is_abstract", False)
-                related_objects.append(ta_object)
+                related_objects.extend(bundle)
                 collected_object_refs.append(ta_object.id)
 
                 if is_abstract:
@@ -481,6 +489,8 @@ class CatalystClient:
                     entity_mappings["threat-actor"].append(ta_object.id)
                     if self.logger:
                         self.logger.debug(f"Added threat actor: {entity_value}")
+
+                return related_objects, collected_object_refs, entity_mappings
 
             except Exception as e:
                 if self.logger:
@@ -500,6 +510,8 @@ class CatalystClient:
 
                 if self.logger:
                     self.logger.debug(f"Added threat actor: {entity_value}")
+
+                return related_objects, collected_object_refs, entity_mappings
 
     def create_report_from_member_content_with_references(
         self, content: Dict
@@ -657,7 +669,11 @@ class CatalystClient:
                             f"Skipping threat actor {threat_actor.get('value')} because user is not authenticated... This will be implemented in the future."
                         )
                     continue
-                self._process_threat_actor(
+                (
+                    related_objects,
+                    collected_object_refs,
+                    entity_mappings,
+                ) = self._process_threat_actor(
                     threat_actor,
                     related_objects,
                     collected_object_refs,
@@ -684,7 +700,11 @@ class CatalystClient:
                     converter_method = processor
                     mapping_type = entity_type
 
-                self._process_entities(
+                (
+                    related_objects,
+                    collected_object_refs,
+                    entity_mappings,
+                ) = self._process_entities(
                     all_entities.get(entity_type, []),
                     mapping_type,
                     converter_method,
